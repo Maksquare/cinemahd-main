@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Search, Film, Bookmark, Sparkles, Tv, Compass } from 'lucide-react';
 import { SearchModal } from '@/components/search/SearchModal';
-import { UserMenu } from '@/components/auth/UserMenu';
 import { getWatchlist } from '@/lib/storage';
 
 export const Navbar: React.FC = () => {
@@ -129,9 +128,6 @@ export const Navbar: React.FC = () => {
                 </span>
               )}
             </Link>
-
-            {/* Google Authentication & Cross-Device Cloud Sync Profile Menu */}
-            <UserMenu />
           </div>
         </div>
       </header>
