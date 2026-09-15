@@ -21,6 +21,7 @@ import { WatchProviders } from '@/components/media/WatchProviders';
 import { MediaRail } from '@/components/home/MediaRail';
 import { TrailerModal } from '@/components/media/TrailerModal';
 import { toggleWatchlist, isInWatchlist, toggleWatched, isWatched } from '@/lib/storage';
+import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 
 interface WatchPageProps {
   params: Promise<{
@@ -306,12 +307,20 @@ export default function WatchPage({ params }: WatchPageProps) {
                   </button>
                 </div>
               </div>
+
+              {/* Sponsored 300x250 High-Viewability Banner in Stream Room Sidebar */}
+              <AdBanner300x250 className="w-full" />
             </div>
+          </div>
+
+          {/* Sponsored Mid-Page 300x250 Ad Unit */}
+          <div className="mt-12 flex justify-center border-t border-white/8 pt-6">
+            <AdBanner300x250 />
           </div>
 
           {/* 5. More Like This Recommendation Rail */}
           {similar.length > 0 && (
-            <div className="mt-14 border-t border-white/8 pt-8">
+            <div className="mt-8 border-t border-white/8 pt-8">
               <MediaRail
                 title="More Like This"
                 subtitle="Titles you might also enjoy streaming"

@@ -9,6 +9,7 @@ import { ContinueWatchingRail } from '@/components/watchlist/ContinueWatchingRai
 import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
 import { Flame } from 'lucide-react';
+import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 
 export default function HomePage() {
   const [catalog, setCatalog] = useState<MediaCatalogResponse>({
@@ -137,6 +138,11 @@ export default function HomePage() {
               trendingWeek={catalog.trendingWeek}
               trendingMonth={catalog.popularMovies}
             />
+
+            {/* Sponsored 300x250 Ad Banner */}
+            <div className="my-6 flex justify-center">
+              <AdBanner300x250 />
+            </div>
 
             {/* 6. Blockbuster Movies Rail */}
             <MediaRail

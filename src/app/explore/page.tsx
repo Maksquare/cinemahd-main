@@ -6,6 +6,7 @@ import { Filter, Sparkles, Film, Tv, Flame, Globe, RotateCcw } from 'lucide-reac
 import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { MediaCard } from '@/components/media/MediaCard';
 import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
+import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 
 function ExploreContent() {
   const router = useRouter();
@@ -274,6 +275,11 @@ function ExploreContent() {
           ))}
         </div>
       )}
+
+      {/* Sponsored 300x250 Ad Unit */}
+      <div className="mt-12 flex justify-center border-t border-white/8 pt-8">
+        <AdBanner300x250 />
+      </div>
     </div>
   );
 }
