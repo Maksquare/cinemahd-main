@@ -2,8 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bookmark, Clock, Check, Film, Play, Trash2 } from 'lucide-react';
-import { getWatchlist, getContinueWatching, getWatchedList, removeWatchProgress } from '@/lib/storage';
+import { Bookmark, Clock, Check, Film, Play, Trash2, X } from 'lucide-react';
+import {
+  getWatchlist,
+  getContinueWatching,
+  getWatchedList,
+  removeWatchProgress,
+  removeFromWatchlist,
+} from '@/lib/storage';
 import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { MediaItem, WatchProgress } from '@/types/media';
 import { MediaCard } from '@/components/media/MediaCard';
@@ -153,24 +159,49 @@ export default function WatchlistPage() {
                     key={`${item.mediaType}-${item.mediaId}`}
                     className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#141418] transition-all hover:border-white/25 hover:shadow-xl"
                   >
-                    <Link href={watchUrl} className="block relative aspect-video w-full overflow-hidden bg-black/50">
-                      <img
-                        src={item.backdropPath || item.posterPath}
-                        alt={item.title}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-400 text-black shadow-lg">
-                          <Play className="h-5 w-5 fill-black ml-0.5" />
+                    <div className="relative aspect-video w-full overflow-hidden bg-black/50">
+                      <Link href={watchUrl} className="block w-full h-full">
+                        <img
+                          src={item.backdropPath || item.posterPath}
+                          alt={item.title}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-400 text-black shadow-lg">
+                            <Play className="h-5 w-5 fill-black ml-0.5" />
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Progress bar */}
-                      <div className="absolute bottom-0 inset-x-0 h-1 bg-white/20">
-                        <div className="h-full bg-amber-400" style={{ width: `${percent}%` }} />
-                      </div>
-                    </Link>
+                        {/* Progress bar */}
+                        <div className="absolute bottom-0 inset-x-0 h-1 bg-white/20 pointer-events-none">
+                          <div className="h-full bg-amber-400" style={{ width: `${percent}%` }} />
+                        </div>
+                      </Link>
+
+                      {/* Top-Right Dedicated Remove X Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          removeWatchProgress(item.mediaId);
+                          removeFromWatchlist(item.mediaId);
+                          setHistory((prev) =>
+                            prev.filter(
+                              (p) =>
+                                String(p.mediaId) !== String(item.mediaId) &&
+                                Number(p.mediaId) !== Number(item.mediaId)
+                            )
+                          );
+                        }}
+                        className="absolute top-2.5 right-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-full bg-black/75 text-white/80 border border-white/20 backdrop-blur-md hover:bg-rose-600 hover:text-white hover:border-rose-500 hover:scale-110 active:scale-95 transition-all shadow-xl cursor-pointer"
+                        title="Remove from history"
+                        aria-label="Remove from history"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
 
                     <div className="p-3.5 flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">

@@ -60,10 +60,38 @@ export function toggleWatchlist(item: MediaItem): boolean {
   }
 }
 
-export function isInWatchlist(id: number): boolean {
+export function isInWatchlist(id: number | string): boolean {
   if (typeof window === 'undefined') return false;
   const list = getWatchlist();
-  return list.some((m) => m.id === id);
+  const targetStr = String(id).trim();
+  const targetNum = Number(id);
+  return list.some((m) => {
+    const itemStr = String(m.id ?? m.tmdbId ?? '').trim();
+    const itemNum = Number(m.id ?? m.tmdbId);
+    return itemStr === targetStr || (!isNaN(itemNum) && !isNaN(targetNum) && itemNum === targetNum);
+  });
+}
+
+export function removeFromWatchlist(id: number | string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const list = getWatchlist();
+    const targetStr = String(id).trim();
+    const targetNum = Number(id);
+    const updated = list.filter((m) => {
+      const itemStr = String(m.id ?? m.tmdbId ?? '').trim();
+      const itemNum = Number(m.id ?? m.tmdbId);
+      const isMatch = itemStr === targetStr || (!isNaN(itemNum) && !isNaN(targetNum) && itemNum === targetNum);
+      return !isMatch;
+    });
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('cinemahd_storage_change'));
+    pushToCloud();
+    return true;
+  } catch (err) {
+    console.error('Failed to remove item from watchlist', err);
+    return false;
+  }
 }
 
 export function getWatchedList(): number[] {
@@ -133,10 +161,17 @@ export function saveWatchProgress(progress: WatchProgress): void {
   }
 }
 
-export function removeWatchProgress(mediaId: number): void {
+export function removeWatchProgress(mediaId: number | string): void {
   if (typeof window === 'undefined') return;
   try {
-    const current = getContinueWatching().filter((item) => item.mediaId !== mediaId);
+    const targetStr = String(mediaId).trim();
+    const targetNum = Number(mediaId);
+    const current = getContinueWatching().filter((item) => {
+      const itemStr = String(item.mediaId ?? (item as any).id ?? '').trim();
+      const itemNum = Number(item.mediaId ?? (item as any).id);
+      const isMatch = itemStr === targetStr || (!isNaN(itemNum) && !isNaN(targetNum) && itemNum === targetNum);
+      return !isMatch;
+    });
     localStorage.setItem(HISTORY_KEY, JSON.stringify(current));
     window.dispatchEvent(new Event('cinemahd_storage_change'));
 
