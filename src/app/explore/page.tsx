@@ -7,6 +7,7 @@ import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { MediaCard } from '@/components/media/MediaCard';
 import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
+import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
 
 function ExploreContent() {
   const router = useRouter();
@@ -216,6 +217,11 @@ function ExploreContent() {
             </button>
           );
         })}
+      </div>
+
+      {/* Sponsored 728x90 Leaderboard Unit */}
+      <div className="mb-6 flex justify-center">
+        <AdBanner728x90 />
       </div>
 
       {/* Results Count & Reset Filter */}

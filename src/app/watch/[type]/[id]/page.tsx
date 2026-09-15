@@ -22,6 +22,7 @@ import { MediaRail } from '@/components/home/MediaRail';
 import { TrailerModal } from '@/components/media/TrailerModal';
 import { toggleWatchlist, isInWatchlist, toggleWatched, isWatched } from '@/lib/storage';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
+import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
 
 interface WatchPageProps {
   params: Promise<{
@@ -169,6 +170,11 @@ export default function WatchPage({ params }: WatchPageProps) {
               mediaType={media.mediaType}
               title={media.title}
             />
+          </div>
+
+          {/* Sponsored 728x90 Leaderboard Banner directly below Player & Tools */}
+          <div className="mt-6 z-10 relative flex justify-center">
+            <AdBanner728x90 />
           </div>
 
           {/* 4. Media Metadata & Quick Actions */}

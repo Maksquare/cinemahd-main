@@ -10,6 +10,7 @@ import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
 import { Flame } from 'lucide-react';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
+import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
 
 export default function HomePage() {
   const [catalog, setCatalog] = useState<MediaCatalogResponse>({
@@ -179,6 +180,11 @@ export default function HomePage() {
               variant="backdrop"
               seeAllHref="/explore?type=asian"
             />
+
+            {/* Sponsored 728x90 Leaderboard Banner */}
+            <div className="my-10 flex justify-center">
+              <AdBanner728x90 />
+            </div>
           </>
         )}
       </div>
