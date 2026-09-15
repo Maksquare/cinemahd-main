@@ -23,6 +23,7 @@ import { TrailerModal } from '@/components/media/TrailerModal';
 import { toggleWatchlist, isInWatchlist, toggleWatched, isWatched } from '@/lib/storage';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
+import { AdNativeBanner } from '@/components/ads/AdNativeBanner';
 
 interface WatchPageProps {
   params: Promise<{
@@ -335,6 +336,11 @@ export default function WatchPage({ params }: WatchPageProps) {
               />
             </div>
           )}
+
+          {/* Sponsored Native Recommendations Banner */}
+          <div className="mt-10 border-t border-white/8 pt-6">
+            <AdNativeBanner />
+          </div>
         </div>
       </div>
 

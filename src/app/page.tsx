@@ -11,6 +11,7 @@ import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
 import { Flame } from 'lucide-react';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
+import { AdNativeBanner } from '@/components/ads/AdNativeBanner';
 
 export default function HomePage() {
   const [catalog, setCatalog] = useState<MediaCatalogResponse>({
@@ -162,6 +163,9 @@ export default function HomePage() {
               variant="backdrop"
               seeAllHref="/explore?type=tv"
             />
+
+            {/* Sponsored Native Recommendations Banner */}
+            <AdNativeBanner />
 
             {/* 8. Anime Spotlight */}
             <MediaRail

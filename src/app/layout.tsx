@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { StarfieldBackground } from '@/components/ui/StarfieldBackground';
+import { AdsterraPopunder } from '@/components/ads/AdsterraPopunder';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -73,6 +75,16 @@ export default function RootLayout({
 
         {/* Footer */}
         <Footer />
+
+        {/* Adsterra Smartlink Popunder (Frequency-Capped) */}
+        <AdsterraPopunder />
+
+        {/* Adsterra SocialBar (Interactive in-page push ads) */}
+        <Script
+          id="adsterra-socialbar"
+          src="https://pl31351453.profitableratecpmnetwork.com/36/c9/b5/36c9b5e460f29f3f7f058adf1dada9c9.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
