@@ -41,7 +41,13 @@ export const metadata: Metadata = {
     type: 'website',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/new/favicon.svg', type: 'image/svg+xml' },
+      { url: '/new/favcon.png', type: 'image/png' },
+      { url: '/favicon.ico' },
+    ],
+    shortcut: '/new/favicon.svg',
+    apple: '/new/favcon.png',
   },
 };
 

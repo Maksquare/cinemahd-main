@@ -177,6 +177,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
               {!query.trim() && (
                 <div className="py-6 px-2 text-center">
+                  <div className="flex justify-center mb-4">
+                    <img src="/new/white.png" alt="CinemaHD" className="h-7 w-auto opacity-75" />
+                  </div>
                   <p className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-3">Popular Searches</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {['Deadpool & Wolverine', 'Lioness', 'Arcane', 'Shōgun', 'Solo Leveling', 'Queen of Tears', 'Interstellar'].map(

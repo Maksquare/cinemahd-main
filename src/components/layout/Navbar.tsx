@@ -64,13 +64,12 @@ export const Navbar: React.FC = () => {
         <div className="mx-auto flex h-16 sm:h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <div className="flex items-center gap-8">
-            <Link href="/" className="group flex items-center gap-2">
-              <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white select-none">
-                Cinema
-                <span className="italic text-amber-400 font-serif ml-0.5 group-hover:text-amber-300 transition-colors">
-                  HD
-                </span>
-              </span>
+            <Link href="/" className="group flex items-center gap-2.5">
+              <img
+                src="/new/white.png"
+                alt="CinemaHD"
+                className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              />
               <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
                 <Sparkles className="h-2.5 w-2.5" />
                 PRO

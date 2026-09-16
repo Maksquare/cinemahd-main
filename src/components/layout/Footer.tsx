@@ -9,9 +9,11 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex flex-col items-center md:items-start gap-2 text-center md:text-left">
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-serif text-xl font-bold tracking-tight text-white">
-                Cinema<span className="italic text-amber-400 font-serif">HD</span>
-              </span>
+              <img
+                src="/new/white.png"
+                alt="CinemaHD"
+                className="h-6 sm:h-7 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+              />
             </Link>
             <p className="max-w-md text-white/40">
               The ultimate high-definition streaming destination. Fusing Phonofilm&apos;s celestial aesthetic with Cinebloom&apos;s multi-server resilience.
