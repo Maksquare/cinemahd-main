@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono, Noto_Sans_Ethiopic } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
@@ -10,6 +10,20 @@ import { AdsterraPopunder } from '@/components/ads/AdsterraPopunder';
 import { AuthProvider } from '@/context/AuthContext';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { AppModals } from '@/components/layout/AppModals';
+import { PwaRegister } from '@/components/pwa/PwaRegister';
+import { PwaInstallPrompt } from '@/components/pwa/PwaInstallPrompt';
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0b0b0d' },
+    { media: '(prefers-color-scheme: light)', color: '#0b0b0d' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+};
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,6 +45,8 @@ const notoSansEthiopic = Noto_Sans_Ethiopic({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cinemahd.pro.et'),
+  applicationName: 'CinemaHD',
+  manifest: '/manifest.webmanifest',
   title: {
     default: 'CinemaHD — Watch Movies & TV Series Online in HD',
     template: '%s | CinemaHD',
@@ -54,6 +70,14 @@ export const metadata: Metadata = {
   publisher: 'CinemaHD',
   alternates: {
     canonical: '/',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'CinemaHD',
+  },
+  formatDetection: {
+    telephone: false,
   },
   openGraph: {
     title: 'CinemaHD — Watch Movies & TV Series Online in HD',
@@ -93,11 +117,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/new/favicon.svg', type: 'image/svg+xml' },
-      { url: '/new/favcon.png', type: 'image/png' },
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
       { url: '/favicon.ico' },
     ],
     shortcut: '/new/favicon.svg',
-    apple: '/new/favcon.png',
+    apple: [
+      { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 
@@ -118,17 +145,23 @@ export default function RootLayout({
         className="min-h-screen bg-[#0b0b0d] text-[#f4f4f6] flex flex-col antialiased selection:bg-amber-400 selection:text-black font-sans"
       >
         <AuthProvider>
+          {/* PWA Service Worker Registration & Update Notification */}
+          <PwaRegister />
+
           {/* Animated celestial background */}
           <StarfieldBackground />
 
           {/* Global sticky navbar */}
           <Navbar />
 
-          {/* Main page content container */}
-          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          {/* Main page content container with safe area bottom padding when mobile nav is visible */}
+          <main className="flex-1 pb-20 md:pb-0">{children}</main>
 
           {/* Mobile bottom navigation dock */}
           <MobileNav />
+
+          {/* Standalone/PWA In-App Install Prompt Banner */}
+          <PwaInstallPrompt />
 
           {/* Footer */}
           <Footer />

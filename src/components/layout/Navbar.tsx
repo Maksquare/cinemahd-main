@@ -59,13 +59,13 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        className={`sticky top-0 z-40 w-full pt-safe transition-all duration-300 ${
           scrolled
             ? 'bg-[#0b0b0d]/90 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
             : 'bg-gradient-to-b from-[#0b0b0d]/90 via-[#0b0b0d]/40 to-transparent backdrop-blur-[2px]'
         }`}
       >
-        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 sm:h-20 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
           {/* Brand Logo */}
           <div className="flex items-center gap-8">
             <Link href="/" className="group flex items-center gap-2.5">

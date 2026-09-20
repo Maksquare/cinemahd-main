@@ -1,0 +1,97 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'CinemaHD PRO — Watch Movies & TV Series',
+    short_name: 'CinemaHD',
+    description:
+      'Discover, track, and stream trending movies, TV shows, anime, and Asian dramas in 4K HDR with multi-server resilience on CinemaHD.',
+    start_url: '/',
+    scope: '/',
+    id: '/',
+    display: 'standalone',
+    display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
+    background_color: '#0b0b0d',
+    theme_color: '#0b0b0d',
+    orientation: 'portrait',
+    categories: ['entertainment', 'movies', 'video'],
+    icons: [
+      {
+        src: '/icons/icon-72x72.png',
+        sizes: '72x72',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-96x96.png',
+        sizes: '96x96',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-128x128.png',
+        sizes: '128x128',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-144x144.png',
+        sizes: '144x144',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-152x152.png',
+        sizes: '152x152',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-maskable-192x192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+      {
+        src: '/icons/icon-384x384.png',
+        sizes: '384x384',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-maskable-512x512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable',
+      },
+    ],
+    shortcuts: [
+      {
+        name: 'Explore Movies & Series',
+        short_name: 'Explore',
+        description: 'Browse top trending movies, series, and anime',
+        url: '/explore',
+        icons: [{ src: '/icons/icon-96x96.png', sizes: '96x96' }],
+      },
+      {
+        name: 'My Watchlist',
+        short_name: 'Watchlist',
+        description: 'Open your saved watchlist and progress',
+        url: '/watchlist',
+        icons: [{ src: '/icons/icon-96x96.png', sizes: '96x96' }],
+      },
+    ],
+  };
+}

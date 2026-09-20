@@ -20,7 +20,7 @@ export const MobileNav: React.FC = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#0e0e12]/95 border-t border-white/10 backdrop-blur-2xl px-4 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+      <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-[#0e0e12]/95 border-t border-white/10 backdrop-blur-2xl px-2 py-1 pb-safe shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -29,16 +29,16 @@ export const MobileNav: React.FC = () => {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 py-1 transition-colors ${
+                className={`flex min-h-[44px] min-w-[48px] flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all touch-manipulation active:scale-95 ${
                   isActive
-                    ? 'text-amber-400'
+                    ? 'text-amber-400 font-semibold'
                     : item.highlight
                     ? 'text-emerald-400 hover:text-emerald-300'
-                    : 'text-white/50 hover:text-white'
+                    : 'text-white/60 hover:text-white'
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="text-[11px] font-medium">{item.label}</span>
+                <Icon className={`h-5 w-5 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]' : ''}`} />
+                <span className="text-[10px] font-medium tracking-tight">{item.label}</span>
               </Link>
             );
           })}
@@ -46,11 +46,11 @@ export const MobileNav: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
-            className="flex flex-col items-center gap-1 py-1 text-white/50 hover:text-white transition-colors"
+            className="flex min-h-[44px] min-w-[48px] flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl text-white/60 hover:text-white transition-all touch-manipulation active:scale-95 cursor-pointer"
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
-            <span className="text-[11px] font-medium">Search</span>
+            <span className="text-[10px] font-medium tracking-tight">Search</span>
           </button>
         </div>
       </div>
