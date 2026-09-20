@@ -113,10 +113,13 @@ export const Navbar: React.FC = () => {
               type="button"
               onClick={openDownloadApkModal}
               className="group inline-flex h-9 sm:h-10 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 sm:px-3.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all cursor-pointer shadow-sm"
-              title="Download Android APK"
+              title="CinemaHD Android & Firestick App - Coming Soon"
             >
               <AndroidLogo className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline">APK</span>
+              <span className="hidden sm:inline">App</span>
+              <span className="hidden md:inline-flex text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-200 border border-emerald-500/40">
+                Soon
+              </span>
             </button>
 
             {/* Crypto Support Trigger */}

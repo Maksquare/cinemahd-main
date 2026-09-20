@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { APK_RELEASE } from '@/lib/apk-config';
 import { AndroidLogo } from '@/components/icons/AndroidLogo';
+import { ApkHeroActions } from '@/components/apk/ApkHeroActions';
 
 export const metadata: Metadata = {
   title: 'Download CinemaHD APK v2.6.0 for Android & Firestick',
@@ -77,32 +78,32 @@ export default function DownloadApkPage() {
           <div className="max-w-2xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3.5 py-1 text-xs font-bold text-emerald-300">
               <AndroidLogo className="h-4 w-4" />
-              <span>Official Android Release • VirusTotal 100% Clean</span>
+              <span>Official Android App • Coming Soon (In Active Development)</span>
             </div>
 
             <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-white">
-              Download CinemaHD APK{' '}
-              <span className="text-amber-400">v{APK_RELEASE.version}</span>
+              CinemaHD for Android & TV{' '}
+              <span className="text-amber-400">Coming Soon</span>
             </h1>
 
             <p className="text-base text-white/70 leading-relaxed">
-              Experience the premier streaming app on your Android smartphone, tablet, Amazon Fire TV
-              Stick, or Android TV box. Featuring 4K HDR playback, multi-server auto-failover, and
+              We are currently engineering the native CinemaHD application for Android smartphones, tablets, Amazon Fire TV
+              Stick, and Android TV boxes. Featuring native 4K HDR playback, multi-server auto-failover, and
               optimized stream compression for mobile connections across Ethiopia.
             </p>
 
             {/* Quick Specs Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
               <div className="rounded-xl border border-white/8 bg-white/5 p-3">
-                <span className="text-[11px] font-semibold text-white/40 block">File Size</span>
-                <span className="text-sm font-bold text-white mt-0.5 block">{APK_RELEASE.fileSize}</span>
+                <span className="text-[11px] font-semibold text-white/40 block">Target Size</span>
+                <span className="text-sm font-bold text-white mt-0.5 block">~25 MB</span>
               </div>
               <div className="rounded-xl border border-white/8 bg-white/5 p-3">
                 <span className="text-[11px] font-semibold text-white/40 block">Requirements</span>
                 <span className="text-sm font-bold text-white mt-0.5 block">Android 5.0+</span>
               </div>
               <div className="rounded-xl border border-white/8 bg-white/5 p-3">
-                <span className="text-[11px] font-semibold text-white/40 block">Version</span>
+                <span className="text-[11px] font-semibold text-white/40 block">Target Version</span>
                 <span className="text-sm font-bold text-white mt-0.5 block">v{APK_RELEASE.version}</span>
               </div>
               <div className="rounded-xl border border-white/8 bg-white/5 p-3">
@@ -111,27 +112,8 @@ export default function DownloadApkPage() {
               </div>
             </div>
 
-            {/* Direct Download CTA */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-4">
-              <a
-                href={APK_RELEASE.downloadUrl}
-                download={`cinemahd-v${APK_RELEASE.version}.apk`}
-                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-300 px-8 py-4 text-base font-bold text-black shadow-xl shadow-amber-500/25 hover:scale-105 hover:shadow-amber-500/40 transition-all cursor-pointer"
-              >
-                <Download className="h-5 w-5" />
-                <span>Download APK (Direct)</span>
-              </a>
-
-              <a
-                href={APK_RELEASE.mirrorDownloadUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-6 py-4 text-sm font-semibold text-white hover:bg-white/10 transition-all cursor-pointer"
-              >
-                <span>External Mirror</span>
-                <ExternalLink className="h-4 w-4 text-white/60" />
-              </a>
-            </div>
+            {/* Interactive Progress & VIP Notification Actions */}
+            <ApkHeroActions />
           </div>
         </div>
 

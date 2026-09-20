@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShieldCheck, Heart } from 'lucide-react';
-import { openCryptoSupportModal } from '@/components/layout/AppModals';
+import { openCryptoSupportModal, openDownloadApkModal } from '@/components/layout/AppModals';
 import { AndroidLogo } from '@/components/icons/AndroidLogo';
 
 export const Footer: React.FC = () => {
@@ -37,13 +37,17 @@ export const Footer: React.FC = () => {
             <Link href="/explore?type=anime" className="hover:text-amber-400 transition-colors">Anime</Link>
             <Link href="/explore?type=asian" className="hover:text-amber-400 transition-colors">Asian Dramas</Link>
             <Link href="/watchlist" className="hover:text-amber-400 transition-colors">Watchlist</Link>
-            <Link
-              href="/download-apk"
-              className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+            <button
+              type="button"
+              onClick={openDownloadApkModal}
+              className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors cursor-pointer"
             >
               <AndroidLogo className="h-4 w-4" />
-              Download APK
-            </Link>
+              <span>Android App</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Coming Soon
+              </span>
+            </button>
             <button
               type="button"
               onClick={openCryptoSupportModal}
