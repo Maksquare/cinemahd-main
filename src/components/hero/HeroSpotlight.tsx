@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Film, Bookmark, Star, Calendar, Clock, ChevronRight } from 'lucide-react';
 import { MediaItem } from '@/types/media';
@@ -56,10 +57,13 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = ({ items }) => {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="absolute inset-0 z-0 select-none"
           >
-            <img
+            <Image
               src={current.backdropPath}
-              alt={current.title}
-              className="h-full w-full object-cover object-center filter brightness-[0.75] contrast-[1.08]"
+              alt={`${current.title} backdrop`}
+              fill
+              priority={currentIndex === 0}
+              sizes="100vw"
+              className="object-cover object-center filter brightness-[0.75] contrast-[1.08]"
             />
             {/* Dark gradient overlays */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0d] via-[#0b0b0d]/50 to-transparent" />
@@ -105,7 +109,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = ({ items }) => {
 
             {/* Title */}
             <AnimatePresence mode="wait">
-              <motion.h1
+              <motion.h2
                 key={`title-${current.id}`}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -114,7 +118,7 @@ export const HeroSpotlight: React.FC<HeroSpotlightProps> = ({ items }) => {
                 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]"
               >
                 {current.title}
-              </motion.h1>
+              </motion.h2>
             </AnimatePresence>
 
             {/* Tagline / Genres */}

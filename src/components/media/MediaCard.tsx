@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Star, Bookmark, Check, Play, Film } from 'lucide-react';
 import { MediaItem } from '@/types/media';
 import { toggleWatchlist, isInWatchlist, toggleWatched, isWatched } from '@/lib/storage';
 import { TrailerModal } from '@/components/media/TrailerModal';
+import { createMediaSlug } from '@/lib/tmdb';
 
 interface MediaCardProps {
   media: MediaItem;
@@ -75,7 +77,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({
     <>
       <div className="group relative flex flex-col shrink-0">
         <Link
-          href={`/watch/${media.mediaType}/${media.id}`}
+          href={`/watch/${media.mediaType}/${createMediaSlug(media)}`}
           className="block relative overflow-hidden rounded-2xl border border-white/10 bg-[#141418] transition-all duration-300 hover:-translate-y-1 hover:border-white/25 hover:shadow-[0_12px_36px_rgba(0,0,0,0.6)]"
         >
           {/* Card Media Image */}
@@ -84,12 +86,13 @@ export const MediaCard: React.FC<MediaCardProps> = ({
               isPoster ? 'aspect-[2/3]' : 'aspect-[16/10] sm:aspect-[1.45/1]'
             }`}
           >
-            <img
+            <Image
               src={imgSrc}
               alt={media.title}
-              loading="lazy"
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               onError={handleImageError}
-              className="h-full w-full object-cover brightness-[1.02] contrast-[1.05] transition-transform duration-500 group-hover:scale-105"
+              className="object-cover brightness-[1.02] contrast-[1.05] transition-transform duration-500 group-hover:scale-105"
             />
 
             {/* Gradient Overlay */}

@@ -1,10 +1,16 @@
 import { MediaItem, StreamServer } from '@/types/media';
 
+/**
+ * CinemaHD Multi-Server Streaming Engine
+ * Option 1: VidSrc VIP (Primary)
+ * Option 2: VidSrc.pm (Official Fast Mirror)
+ * Followed by auxiliary backup mirrors.
+ */
 export const STREAM_SERVERS: StreamServer[] = [
   {
     id: 'vidsrc',
-    name: 'Vidsrc VIP',
-    tag: 'Primary Stream Server (Cinebloom Primary)',
+    name: 'VidSrc VIP',
+    tag: 'Primary Stream Server • Ultra 4K HDR',
     speed: 'Ultra',
     quality: '4K HDR',
     hasSubtitles: true,
@@ -17,24 +23,99 @@ export const STREAM_SERVERS: StreamServer[] = [
     },
   },
   {
-    id: 'vidsrc-to',
-    name: 'VidSrc.to',
-    tag: 'VidSrc Direct HD',
+    id: 'vidsrc-pm',
+    name: 'VidSrc.pm',
+    tag: 'Official Mirror 2 • Fast 1080p HD',
     speed: 'Ultra',
     quality: '1080p HD',
     hasSubtitles: true,
     getUrl: (media: MediaItem, season = 1, episode = 1) => {
       const tmdbId = media.tmdbId || media.id;
       if (media.mediaType === 'tv') {
-        return `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vidsrc.pm/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
-      return `https://vidsrc.to/embed/movie/${tmdbId}`;
+      return `https://vidsrc.pm/embed/movie?tmdb=${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidlink',
+    name: 'VidLink Ultra',
+    tag: 'Ultra-Fast CDN • Adaptive 4K • Multi-Subtitles',
+    speed: 'Ultra',
+    quality: '4K HDR',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidlink.pro/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'autoembed',
+    name: 'AutoEmbed Pro',
+    tag: 'Auto-Balancing Cloud Engine • Zero Buffering',
+    speed: 'Ultra',
+    quality: '1080p HD',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://player.autoembed.cc/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'embedsu',
+    name: 'EmbedSu Fast',
+    tag: 'High-Speed Multi-CDN Mirror',
+    speed: 'Ultra',
+    quality: '1080p HD',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embed.su/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrc-cc',
+    name: 'VidSrc CC v2',
+    tag: 'Direct High-Speed API Stream',
+    speed: 'Ultra',
+    quality: '1080p HD',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.cc/v2/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'moviesapi',
+    name: 'MoviesAPI Club',
+    tag: 'Fast Dedicated Cloud Mirror',
+    speed: 'Fast',
+    quality: '1080p HD',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+      }
+      return `https://moviesapi.club/movie/${tmdbId}`;
     },
   },
   {
     id: 'multiembed',
     name: 'MultiEmbed',
-    tag: 'MultiEmbed (10+ Built-in Mirrors)',
+    tag: 'MultiEmbed (10+ Built-in Auto Mirrors)',
     speed: 'Fast',
     quality: '1080p HD',
     hasSubtitles: true,
@@ -48,7 +129,7 @@ export const STREAM_SERVERS: StreamServer[] = [
   },
   {
     id: 'videasy',
-    name: 'Videasy',
+    name: 'Videasy HD',
     tag: 'Videasy Player CDN',
     speed: 'Fast',
     quality: '1080p HD',
@@ -74,6 +155,21 @@ export const STREAM_SERVERS: StreamServer[] = [
         return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
       }
       return `https://www.2embed.cc/embed/${tmdbId}`;
+    },
+  },
+  {
+    id: 'smashystream',
+    name: 'SmashyStream',
+    tag: 'SmashyStream Fast Cloud',
+    speed: 'Fast',
+    quality: '1080p HD',
+    hasSubtitles: true,
+    getUrl: (media: MediaItem, season = 1, episode = 1) => {
+      const tmdbId = media.tmdbId || media.id;
+      if (media.mediaType === 'tv') {
+        return `https://player.smashystream.com/tv/${tmdbId}?s=${season}&e=${episode}`;
+      }
+      return `https://player.smashystream.com/movie/${tmdbId}`;
     },
   },
   {
@@ -107,33 +203,18 @@ export const STREAM_SERVERS: StreamServer[] = [
     },
   },
   {
-    id: 'vidnest',
-    name: 'Vidnest',
-    tag: 'Vidnest Stream',
-    speed: 'Normal',
+    id: 'vidsrc-to',
+    name: 'VidSrc.to',
+    tag: 'VidSrc Direct HD',
+    speed: 'Ultra',
     quality: '1080p HD',
     hasSubtitles: true,
     getUrl: (media: MediaItem, season = 1, episode = 1) => {
       const tmdbId = media.tmdbId || media.id;
       if (media.mediaType === 'tv') {
-        return `https://vidnest.fun/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://vidnest.fun/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'smashystream',
-    name: 'SmashyStream',
-    tag: 'SmashyStream Fast Cloud',
-    speed: 'Fast',
-    quality: '1080p HD',
-    hasSubtitles: true,
-    getUrl: (media: MediaItem, season = 1, episode = 1) => {
-      const tmdbId = media.tmdbId || media.id;
-      if (media.mediaType === 'tv') {
-        return `https://player.smashystream.com/tv/${tmdbId}?s=${season}&e=${episode}`;
-      }
-      return `https://player.smashystream.com/movie/${tmdbId}`;
+      return `https://vidsrc.to/embed/movie/${tmdbId}`;
     },
   },
   {
@@ -164,21 +245,6 @@ export const STREAM_SERVERS: StreamServer[] = [
         return `https://vidsrc.in/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
       return `https://vidsrc.in/embed/movie?tmdb=${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrc-pm',
-    name: 'VidSrc.pm',
-    tag: 'VidSrc.pm Mirror',
-    speed: 'Fast',
-    quality: '1080p HD',
-    hasSubtitles: true,
-    getUrl: (media: MediaItem, season = 1, episode = 1) => {
-      const tmdbId = media.tmdbId || media.id;
-      if (media.mediaType === 'tv') {
-        return `https://vidsrc.pm/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
-      }
-      return `https://vidsrc.pm/embed/movie?tmdb=${tmdbId}`;
     },
   },
 ];

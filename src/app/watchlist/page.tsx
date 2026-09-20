@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Bookmark, Clock, Check, Film, Play, Trash2, X } from 'lucide-react';
+import { Bookmark, Clock, Check, Film, Play, Trash2, X, ShieldCheck, CheckCircle2, Lock } from 'lucide-react';
 import {
   getWatchlist,
   getContinueWatching,
@@ -13,8 +13,10 @@ import {
 import { getMediaCatalog, LATEST_MEDIA } from '@/lib/tmdb';
 import { MediaItem, WatchProgress } from '@/types/media';
 import { MediaCard } from '@/components/media/MediaCard';
+import { useAuth } from '@/context/AuthContext';
 
 export default function WatchlistPage() {
+  const { user, isAuthenticated, openAuthModal } = useAuth();
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'history' | 'watched'>('bookmarks');
   const [watchlist, setWatchlist] = useState<MediaItem[]>([]);
   const [history, setHistory] = useState<WatchProgress[]>([]);
@@ -53,6 +55,23 @@ export default function WatchlistPage() {
             <p className="mt-1 text-sm text-white/50">
               Manage your saved bookmarks, playback progress, and completed titles.
             </p>
+            <div className="flex items-center gap-2 mt-3">
+              {isAuthenticated ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Private Library for {user?.email}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={openAuthModal}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-400/15 text-amber-300 border border-amber-400/30 hover:bg-amber-400/25 transition-colors cursor-pointer"
+                >
+                  <Lock className="h-3 w-3 text-amber-400" />
+                  <span>Guest Mode • Sign in to save your personal library</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

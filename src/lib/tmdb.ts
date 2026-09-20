@@ -233,11 +233,30 @@ export async function getMediaByCategory(category: Category): Promise<MediaItem[
   return catalog.all.filter((m) => m.category === category);
 }
 
+export function parseMediaId(idOrSlug: string | number): number {
+  if (typeof idOrSlug === 'number') return idOrSlug;
+  const match = String(idOrSlug).match(/^(\d+)/);
+  return match ? parseInt(match[1], 10) : NaN;
+}
+
+export function createMediaSlug(media: { id: number | string; title: string }): string {
+  const cleanTitle = (media.title || '')
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+  return cleanTitle ? `${media.id}-${cleanTitle}` : `${media.id}`;
+}
+
 export async function getMediaById(
   id: number | string,
   type?: 'movie' | 'tv'
 ): Promise<MediaItem | null> {
-  const numericId = Number(id);
+  const numericId = parseMediaId(id);
+  if (isNaN(numericId) || numericId <= 0) {
+    return null;
+  }
   const catalog = await getMediaCatalog();
   const all = catalog.all;
   const found = all.find((m) => m.id === numericId || m.tmdbId === numericId);
@@ -382,7 +401,7 @@ export async function getMediaById(
   }
 
   if (found) return found;
-  return all[0] || LATEST_MEDIA[0];
+  return null;
 }
 
 export async function searchMedia(query: string): Promise<MediaItem[]> {

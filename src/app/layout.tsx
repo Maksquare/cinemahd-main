@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Noto_Sans_Ethiopic } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
 import { Navbar } from '@/components/layout/Navbar';
@@ -7,38 +7,88 @@ import { Footer } from '@/components/layout/Footer';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { StarfieldBackground } from '@/components/ui/StarfieldBackground';
 import { AdsterraPopunder } from '@/components/ads/AdsterraPopunder';
+import { AuthProvider } from '@/context/AuthContext';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { AppModals } from '@/components/layout/AppModals';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
+  display: 'swap',
 });
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+  display: 'swap',
+});
+
+const notoSansEthiopic = Noto_Sans_Ethiopic({
+  variable: '--font-noto-ethiopic',
+  subsets: ['ethiopic'],
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'CinemaHD — Ultimate Movie, Series & Anime Streaming',
+  metadataBase: new URL('https://cinemahd.pro.et'),
+  title: {
+    default: 'CinemaHD — Watch Movies & TV Series Online in HD',
+    template: '%s | CinemaHD',
+  },
   description:
-    'Discover, track, and stream trending movies, TV shows, anime, and Asian dramas in 4K HDR with multi-server resilience and celestial aesthetics.',
+    'Discover, track, and stream trending movies, TV shows, anime, and Asian dramas in 4K HDR with multi-server resilience on CinemaHD.',
   keywords: [
-    'movies',
-    'stream movies',
-    'tv series',
-    'anime',
-    'asian drama',
-    'cinemahd',
-    'watch free',
-    'phonofilm',
-    'cinebloom',
+    'watch movies online Ethiopia',
+    'HD movies',
+    'Amharic movies',
+    'CinemaHD',
+    'TV series online',
+    'stream movies free',
+    'Ethiopian movie streaming',
+    'watch anime online',
+    'Asian drama streaming',
+    '4K movies',
   ],
-  authors: [{ name: 'CinemaHD' }],
+  authors: [{ name: 'CinemaHD', url: 'https://cinemahd.pro.et' }],
+  creator: 'CinemaHD',
+  publisher: 'CinemaHD',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
-    title: 'CinemaHD — Ultimate Streaming Experience',
-    description: 'Discover trending movies, TV series, anime, and Asian dramas with multi-server playback.',
+    title: 'CinemaHD — Watch Movies & TV Series Online in HD',
+    description:
+      'Discover and stream trending movies, TV shows, anime, and Asian dramas in 4K HDR with multi-server resilience.',
+    url: 'https://cinemahd.pro.et',
     siteName: 'CinemaHD',
+    locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: '/new/main.png',
+        width: 1200,
+        height: 630,
+        alt: 'CinemaHD — Ultimate Streaming Experience',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CinemaHD — Watch Movies & TV Series Online in HD',
+    description:
+      'Stream trending movies, TV shows, anime, and Asian dramas in 4K HDR on CinemaHD.',
+    images: ['/new/main.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
   },
   icons: {
     icon: [
@@ -61,37 +111,47 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} dark scroll-smooth`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansEthiopic.variable} dark scroll-smooth`}
     >
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-[#0b0b0d] text-[#f4f4f6] flex flex-col antialiased selection:bg-amber-400 selection:text-black"
+        className="min-h-screen bg-[#0b0b0d] text-[#f4f4f6] flex flex-col antialiased selection:bg-amber-400 selection:text-black font-sans"
       >
-        {/* Animated celestial background */}
-        <StarfieldBackground />
+        <AuthProvider>
+          {/* Animated celestial background */}
+          <StarfieldBackground />
 
-        {/* Global sticky navbar */}
-        <Navbar />
+          {/* Global sticky navbar */}
+          <Navbar />
 
-        {/* Main page content container */}
-        <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          {/* Main page content container */}
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
 
-        {/* Mobile bottom navigation dock */}
-        <MobileNav />
+          {/* Mobile bottom navigation dock */}
+          <MobileNav />
 
-        {/* Footer */}
-        <Footer />
+          {/* Footer */}
+          <Footer />
 
-        {/* Adsterra Smartlink Popunder (Frequency-Capped) */}
-        <AdsterraPopunder />
+          {/* Global Authentication Modal */}
+          <AuthModal />
 
-        {/* Adsterra SocialBar (Interactive in-page push ads) */}
-        <Script
-          id="adsterra-socialbar"
-          src="https://pl31351453.profitableratecpmnetwork.com/36/c9/b5/36c9b5e460f29f3f7f058adf1dada9c9.js"
-          strategy="afterInteractive"
-        />
+          {/* Global Crypto Support & Download APK Modals */}
+          <AppModals />
+
+          {/* Adsterra Smartlink Popunder (Frequency-Capped) */}
+          <AdsterraPopunder />
+
+          {/* Adsterra SocialBar (Interactive in-page push ads deferred for Core Web Vitals) */}
+          <Script
+            id="adsterra-socialbar"
+            src="https://pl31351453.profitableratecpmnetwork.com/36/c9/b5/36c9b5e460f29f3f7f058adf1dada9c9.js"
+            strategy="lazyOnload"
+          />
+        </AuthProvider>
       </body>
     </html>
   );
 }
+
+

@@ -2,10 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Search, Film, Bookmark, Sparkles, Tv, Compass } from 'lucide-react';
+import { Search, Film, Bookmark, Sparkles, Tv, Compass, Heart } from 'lucide-react';
 import { SearchModal } from '@/components/search/SearchModal';
 import { getWatchlist } from '@/lib/storage';
+import { openCryptoSupportModal, openDownloadApkModal } from '@/components/layout/AppModals';
+import { UserMenu } from '@/components/auth/UserMenu';
+import { AndroidLogo } from '@/components/icons/AndroidLogo';
 
 export const Navbar: React.FC = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -65,11 +69,16 @@ export const Navbar: React.FC = () => {
           {/* Brand Logo */}
           <div className="flex items-center gap-8">
             <Link href="/" className="group flex items-center gap-2.5">
-              <img
-                src="/new/white.png"
-                alt="CinemaHD"
-                className="h-7 sm:h-8 md:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-              />
+              <div className="relative h-7 sm:h-8 md:h-9 w-28 sm:w-36">
+                <Image
+                  src="/new/white.png"
+                  alt="CinemaHD Logo"
+                  fill
+                  sizes="(max-width: 640px) 112px, 144px"
+                  priority
+                  className="object-contain transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
               <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300">
                 <Sparkles className="h-2.5 w-2.5" />
                 PRO
@@ -97,18 +106,40 @@ export const Navbar: React.FC = () => {
             </nav>
           </div>
 
-          {/* Right Actions: Search trigger & Watchlist */}
-          <div className="flex items-center gap-3">
+          {/* Right Actions: APK Download, Crypto Support, Search, Watchlist, User Menu */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Download APK Trigger */}
+            <button
+              type="button"
+              onClick={openDownloadApkModal}
+              className="group inline-flex h-9 sm:h-10 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 sm:px-3.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all cursor-pointer shadow-sm"
+              title="Download Android APK"
+            >
+              <AndroidLogo className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <span className="hidden sm:inline">APK</span>
+            </button>
+
+            {/* Crypto Support Trigger */}
+            <button
+              type="button"
+              onClick={openCryptoSupportModal}
+              className="inline-flex h-9 sm:h-10 items-center gap-1.5 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 sm:px-3.5 text-xs font-semibold text-amber-300 hover:bg-amber-400/20 hover:border-amber-400/50 transition-all cursor-pointer shadow-sm"
+              title="Support CinemaHD with Crypto"
+            >
+              <Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4 fill-amber-400/40 text-amber-400" />
+              <span className="hidden sm:inline">Support</span>
+            </button>
+
             {/* Search Pill Trigger */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="group flex h-10 items-center gap-3 rounded-full border border-white/12 bg-white/5 px-3.5 sm:px-4 text-sm text-white/60 hover:border-amber-400/40 hover:bg-white/10 hover:text-white transition-all shadow-sm"
+              className="group flex h-9 sm:h-10 items-center gap-2 sm:gap-3 rounded-full border border-white/12 bg-white/5 px-3 sm:px-3.5 text-sm text-white/60 hover:border-amber-400/40 hover:bg-white/10 hover:text-white transition-all shadow-sm cursor-pointer"
               aria-label="Search titles"
             >
               <Search className="h-4 w-4 text-amber-400 group-hover:scale-110 transition-transform" />
-              <span className="hidden sm:inline text-xs font-medium tracking-tight">Search movies, series...</span>
-              <kbd className="hidden lg:inline-flex items-center gap-0.5 rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/60">
+              <span className="hidden lg:inline text-xs font-medium tracking-tight">Search...</span>
+              <kbd className="hidden xl:inline-flex items-center gap-0.5 rounded border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/60">
                 <span>⌘</span>K
               </kbd>
             </button>
@@ -116,17 +147,20 @@ export const Navbar: React.FC = () => {
             {/* Watchlist Link */}
             <Link
               href="/watchlist"
-              className="relative flex h-10 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/5 px-3 sm:px-4 text-sm font-medium text-white/80 hover:border-white/25 hover:bg-white/10 hover:text-white transition-all"
+              className="relative flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-full border border-white/12 bg-white/5 px-3 text-sm font-medium text-white/80 hover:border-white/25 hover:bg-white/10 hover:text-white transition-all"
               aria-label="Watchlist"
             >
               <Bookmark className="h-4 w-4 text-amber-400" />
-              <span className="hidden sm:inline text-xs font-semibold">Watchlist</span>
+              <span className="hidden md:inline text-xs font-semibold">Watchlist</span>
               {watchlistCount > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-[11px] font-bold text-black shadow">
+                <span className="flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-amber-400 text-[10px] sm:text-[11px] font-bold text-black shadow">
                   {watchlistCount}
                 </span>
               )}
             </Link>
+
+            {/* User Account / Sign In */}
+            <UserMenu />
           </div>
         </div>
       </header>
