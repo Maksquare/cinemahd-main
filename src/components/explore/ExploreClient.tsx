@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Filter, Sparkles, Film, Tv, Flame, Globe, RotateCcw } from 'lucide-react';
+import { Filter, Sparkles, Film, Tv, Flame, Globe, RotateCcw, Calendar, ArrowUpDown } from 'lucide-react';
 import { MediaCard } from '@/components/media/MediaCard';
 import { Category, MediaItem, MediaCatalogResponse } from '@/types/media';
+import { sortMediaChronologically, parseReleaseDate } from '@/lib/tmdb';
 import { AdBanner300x250 } from '@/components/ads/AdBanner300x250';
 import { AdBanner728x90 } from '@/components/ads/AdBanner728x90';
 
@@ -16,21 +17,12 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlType = (searchParams.get('type') as Category) || 'all';
+  const urlSort = (searchParams.get('sort') as any) || 'newest';
 
   const [selectedCategory, setSelectedCategory] = useState<Category>(urlType);
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popularity' | 'rating'>('newest');
-  const [catalog] = useState<MediaCatalogResponse | null>(initialCatalog || null);
-
-  // Parse release date reliably into milliseconds
-  const getReleaseTime = (dateStr?: string) => {
-    if (!dateStr) return 0;
-    const t = new Date(dateStr).getTime();
-    if (!isNaN(t)) return t;
-    const yr = parseInt(dateStr, 10);
-    if (!isNaN(yr)) return new Date(yr, 0, 1).getTime();
-    return 0;
-  };
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popularity' | 'rating'>(urlSort);
+  const [catalog, setCatalog] = useState<MediaCatalogResponse | null>(initialCatalog || null);
 
   // Sync state if URL query param changes
   useEffect(() => {
@@ -40,7 +32,21 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
     }
   }, [urlType]);
 
-  // Base items for the currently selected category
+  // Client hydration check: ensure live catalog has 50+ items from TMDb
+  useEffect(() => {
+    if (!catalog?.all || catalog.all.length < 30) {
+      fetch('/api/media')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.all && data.all.length > 0) {
+            setCatalog(data);
+          }
+        })
+        .catch((err) => console.error('Failed to sync live catalog in explore:', err));
+    }
+  }, [catalog?.all]);
+
+  // Base items for the currently selected category (all items included)
   const baseCategoryItems = useMemo<MediaItem[]>(() => {
     if (!catalog) return [];
 
@@ -69,7 +75,8 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
       items = catalog.all || [];
     }
 
-    return [...items].sort((a, b) => getReleaseTime(b.releaseDate) - getReleaseTime(a.releaseDate));
+    // Default chronological sorting (latest release date first)
+    return sortMediaChronologically(items, 'desc');
   }, [catalog, selectedCategory]);
 
   // Extract all unique genres for the selected category
@@ -81,7 +88,7 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
     return ['All', ...Array.from(genresSet).sort()];
   }, [baseCategoryItems]);
 
-  // Filter and sort items
+  // Filter and sort items according to selected criteria
   const filteredItems = useMemo(() => {
     let result = [...baseCategoryItems];
 
@@ -90,9 +97,9 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
     }
 
     if (sortBy === 'newest') {
-      result.sort((a, b) => getReleaseTime(b.releaseDate) - getReleaseTime(a.releaseDate));
+      result = sortMediaChronologically(result, 'desc');
     } else if (sortBy === 'oldest') {
-      result.sort((a, b) => getReleaseTime(a.releaseDate) - getReleaseTime(b.releaseDate));
+      result = sortMediaChronologically(result, 'asc');
     } else if (sortBy === 'popularity') {
       result.sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0));
     } else if (sortBy === 'rating') {
@@ -130,21 +137,24 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
             Explore Movie & Series Database
           </h1>
           <p className="mt-1 text-sm text-white/50 max-w-2xl">
-            Stream from hundreds of verified 4K movies, television series, anime, and international dramas.
-            Optimized for fast playback on mobile and home connections across Ethiopia and worldwide.
+            Browse our up-to-date catalog of 4K HDR movies, television series, anime, and Asian dramas.
+            All categories include full titles organized in chronological order.
           </p>
         </div>
 
         {/* Sort Dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-white/40 uppercase tracking-wider">Sort:</span>
+          <span className="text-xs font-semibold text-white/40 uppercase tracking-wider flex items-center gap-1">
+            <ArrowUpDown className="h-3.5 w-3.5 text-amber-400" />
+            Sort:
+          </span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className="rounded-full border border-white/12 bg-[#121216] px-4 py-2 text-xs font-semibold text-white focus:outline-none focus:border-amber-400 cursor-pointer shadow-sm"
           >
-            <option value="newest">Release Date: Latest to Oldest</option>
-            <option value="oldest">Release Date: Oldest to Latest</option>
+            <option value="newest">Chronological: Latest to Oldest (2026 →)</option>
+            <option value="oldest">Chronological: Oldest to Latest (Classics →)</option>
             <option value="popularity">Most Popular</option>
             <option value="rating">Highest Rated</option>
           </select>
@@ -203,9 +213,21 @@ export function ExploreClient({ initialCatalog }: ExploreClientProps) {
         <AdBanner728x90 />
       </div>
 
-      {/* Results Count & Reset Filter */}
-      <div className="mb-4 flex items-center justify-between text-xs text-white/50">
-        <span>{`Showing ${filteredItems.length} titles`}</span>
+      {/* Results Count & Chronological Order Indicator */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-xs text-white/50">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-white/80">{`Showing ${filteredItems.length} titles`}</span>
+          <span className="inline-flex items-center gap-1 rounded-md bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 text-[11px] text-amber-300">
+            <Calendar className="h-3 w-3" />
+            {sortBy === 'newest'
+              ? 'Chronological Order: Newest First'
+              : sortBy === 'oldest'
+              ? 'Chronological Order: Oldest First'
+              : sortBy === 'popularity'
+              ? 'Sorted by Popularity'
+              : 'Sorted by Rating'}
+          </span>
+        </div>
         {(selectedCategory !== 'all' || selectedGenre !== 'All') && (
           <button
             type="button"

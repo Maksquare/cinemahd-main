@@ -43,21 +43,47 @@ CREATE TABLE IF NOT EXISTS public.user_watch_progress (
     CONSTRAINT unique_user_media_progress UNIQUE(user_id, media_id)
 );
 
--- 3. Performance Indexes
+-- 3. Table: media_catalog
+-- Stores automatically synced live TMDb movie and TV series catalog data
+CREATE TABLE IF NOT EXISTS public.media_catalog (
+    id BIGINT PRIMARY KEY,
+    title TEXT NOT NULL,
+    original_title TEXT,
+    overview TEXT,
+    poster_path TEXT,
+    backdrop_path TEXT,
+    media_type TEXT NOT NULL CHECK (media_type IN ('movie', 'tv')),
+    category TEXT NOT NULL CHECK (category IN ('movie', 'tv', 'anime', 'asian', 'all')),
+    release_date TEXT,
+    vote_average NUMERIC DEFAULT 0,
+    vote_count INTEGER DEFAULT 0,
+    genres TEXT[] DEFAULT '{}',
+    status TEXT DEFAULT 'Released',
+    duration_minutes INTEGER,
+    trailer_youtube_key TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 4. Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_user_watchlists_user_id ON public.user_watchlists(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_watchlists_created_at ON public.user_watchlists(user_id, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_user_watch_progress_user_id ON public.user_watch_progress(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_watch_progress_last_updated ON public.user_watch_progress(user_id, last_updated DESC);
 
+CREATE INDEX IF NOT EXISTS idx_media_catalog_release_date ON public.media_catalog(release_date DESC);
+CREATE INDEX IF NOT EXISTS idx_media_catalog_category ON public.media_catalog(category);
+CREATE INDEX IF NOT EXISTS idx_media_catalog_media_type ON public.media_catalog(media_type);
+
 -- ==============================================================================
--- 4. Enable Row Level Security (RLS)
+-- 5. Enable Row Level Security (RLS)
 -- Crucial: This guarantees NO user can ever read, update, or delete anyone else's data.
 -- ==============================================================================
 ALTER TABLE public.user_watchlists ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_watch_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.media_catalog ENABLE ROW LEVEL SECURITY;
 
--- 5. Strict RLS Policies for user_watchlists
+-- 6. Strict RLS Policies for user_watchlists
 DROP POLICY IF EXISTS "Users can read own watchlist" ON public.user_watchlists;
 CREATE POLICY "Users can read own watchlist"
 ON public.user_watchlists
@@ -86,7 +112,7 @@ FOR DELETE
 TO authenticated
 USING (auth.uid() = user_id);
 
--- 6. Strict RLS Policies for user_watch_progress
+-- 7. Strict RLS Policies for user_watch_progress
 DROP POLICY IF EXISTS "Users can read own watch progress" ON public.user_watch_progress;
 CREATE POLICY "Users can read own watch progress"
 ON public.user_watch_progress
@@ -114,3 +140,19 @@ ON public.user_watch_progress
 FOR DELETE
 TO authenticated
 USING (auth.uid() = user_id);
+
+-- 8. RLS Policies for media_catalog
+DROP POLICY IF EXISTS "Public can view media catalog" ON public.media_catalog;
+CREATE POLICY "Public can view media catalog"
+ON public.media_catalog
+FOR SELECT
+TO public
+USING (true);
+
+DROP POLICY IF EXISTS "Public and anon can upsert media catalog" ON public.media_catalog;
+CREATE POLICY "Public and anon can upsert media catalog"
+ON public.media_catalog
+FOR ALL
+TO public
+USING (true)
+WITH CHECK (true);

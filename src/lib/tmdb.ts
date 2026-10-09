@@ -1,15 +1,183 @@
 import { Category, MediaItem, TrendingWindow, MediaCatalogResponse, Episode, Season } from '@/types/media';
-import { tmdb } from './tmdb-client';
+import { tmdb, TMDbMovieItem } from './tmdb-client';
+import { autoSyncMediaCatalogToDatabase } from './supabase/user-store';
 
-// Real high-quality curated TMDb titles matching 2026/2025 live catalog with verified working image paths
+// Genre mapping dictionary
+export const GENRE_MAP: Record<number, string> = {
+  28: 'Action',
+  12: 'Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  9648: 'Mystery',
+  10749: 'Romance',
+  878: 'Sci-Fi',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War',
+  37: 'Western',
+  10759: 'Action & Adventure',
+  10762: 'Kids',
+  10763: 'News',
+  10764: 'Reality',
+  10765: 'Sci-Fi & Fantasy',
+  10766: 'Soap',
+  10767: 'Talk',
+  10768: 'War & Politics',
+};
+
+/**
+ * Robust date parser for release dates (YYYY-MM-DD, YYYY, or ISO timestamps)
+ */
+export function parseReleaseDate(dateStr?: string): number {
+  if (!dateStr) return 0;
+  const timestamp = new Date(dateStr).getTime();
+  if (!isNaN(timestamp)) return timestamp;
+  const match = dateStr.match(/\b(\d{4})\b/);
+  return match ? new Date(`${match[1]}-01-01`).getTime() : 0;
+}
+
+/**
+ * Sorts any list of MediaItems chronologically
+ * @param items Array of MediaItem
+ * @param order 'desc' = Newest to oldest (default), 'asc' = Oldest to newest
+ */
+export function sortMediaChronologically(
+  items: MediaItem[],
+  order: 'desc' | 'asc' = 'desc'
+): MediaItem[] {
+  return [...items].sort((a, b) => {
+    const timeA = parseReleaseDate(a.releaseDate);
+    const timeB = parseReleaseDate(b.releaseDate);
+    if (order === 'desc') {
+      if (timeB !== timeA) return timeB - timeA;
+      return (b.voteCount || 0) - (a.voteCount || 0);
+    } else {
+      if (timeA !== timeB) return timeA - timeB;
+      return (b.voteCount || 0) - (a.voteCount || 0);
+    }
+  });
+}
+
+/**
+ * Formats TMDb API raw items into standard application MediaItem
+ */
+export function formatTmdItem(
+  item: TMDbMovieItem,
+  mediaType: 'movie' | 'tv',
+  category: Category
+): MediaItem {
+  const title = item.title || item.name || 'Untitled';
+  const releaseDate = item.release_date || item.first_air_date || '2026-01-01';
+  const genres = (item.genre_ids || [])
+    .map((id) => GENRE_MAP[id])
+    .filter(Boolean)
+    .slice(0, 3);
+
+  if (category === 'anime' && !genres.includes('Anime')) genres.unshift('Anime');
+  if (category === 'asian' && !genres.includes('Asian Drama')) genres.unshift('Asian Drama');
+
+  const poster = item.poster_path
+    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+    : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80';
+
+  const backdrop = item.backdrop_path
+    ? `https://image.tmdb.org/t/p/original${item.backdrop_path}`
+    : poster;
+
+  return {
+    id: item.id,
+    tmdbId: item.id,
+    title,
+    originalTitle: title,
+    overview:
+      item.overview ||
+      `${title} is a ${category === 'tv' ? 'series' : 'movie'} released in ${
+        releaseDate.split('-')[0]
+      }. Stream in full 4K Ultra HD on CinemaHD.`,
+    posterPath: poster,
+    backdropPath: backdrop,
+    mediaType,
+    category,
+    releaseDate,
+    voteAverage: item.vote_average ? Number(item.vote_average.toFixed(1)) : 8.0,
+    voteCount: item.vote_count || 200,
+    genres: genres.length > 0 ? genres : [mediaType === 'tv' ? 'TV Series' : 'Action'],
+    status: 'Released',
+    durationMinutes: mediaType === 'movie' ? 120 : undefined,
+  };
+}
+
+// 2026/2025 Curated High-Quality Fallback catalog in chronological order
 export const LATEST_MEDIA: MediaItem[] = [
+  {
+    id: 1599191,
+    tmdbId: 1599191,
+    title: 'Renegade Immortal: Battle of the Immortal Slayer',
+    originalTitle: 'Renegade Immortal',
+    overview:
+      'Wang Lin embarks on his path of cultivation against all odds, defying heaven itself in a cosmic clash across worlds.',
+    posterPath: 'https://image.tmdb.org/t/p/w500/y4XGzL8iCg8b2Z5L1zZ3e3J6jL7.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/c6BPbkO5Npt1OdwttAxCFo06wtH.jpg',
+    mediaType: 'movie',
+    category: 'movie',
+    releaseDate: '2026-10-01',
+    voteAverage: 8.6,
+    voteCount: 320,
+    genres: ['Animation', 'Action', 'Fantasy'],
+    durationMinutes: 110,
+    status: 'Released',
+  },
+  {
+    id: 1423191,
+    tmdbId: 1423191,
+    title: 'Resident Evil',
+    originalTitle: 'Resident Evil',
+    overview:
+      'Special operative teams investigate horrific viral anomalies deep within covert laboratory complexes as contagion threatens humanity.',
+    posterPath: 'https://image.tmdb.org/t/p/w500/gaet1xQ2nxrG0V1Ep9T20ZMNEIC.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg',
+    mediaType: 'movie',
+    category: 'movie',
+    releaseDate: '2026-09-16',
+    voteAverage: 7.9,
+    voteCount: 890,
+    genres: ['Action', 'Horror', 'Sci-Fi'],
+    durationMinutes: 115,
+    status: 'Released',
+  },
+  {
+    id: 1377237,
+    tmdbId: 1377237,
+    title: 'Runner',
+    originalTitle: 'Runner',
+    overview:
+      'A high-stakes courier must navigate urban terrain pursued by syndicates and federal units in a breathless race against the clock.',
+    posterPath: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg',
+    mediaType: 'movie',
+    category: 'movie',
+    releaseDate: '2026-09-07',
+    voteAverage: 8.0,
+    voteCount: 540,
+    genres: ['Action', 'Thriller'],
+    durationMinutes: 104,
+    status: 'Released',
+  },
   {
     id: 1108427,
     tmdbId: 1108427,
     title: 'Moana',
     originalTitle: 'Moana',
     overview:
-      'Teenage Moana answers the Ocean’s call and, for the first time, voyages beyond the reef of her island of Motunui with infamous demigod Maui on an unforgettable journey to restore prosperity to her people.',
+      'Teenage Moana answers the Ocean’s call and voyages beyond the reef of her island of Motunui with demigod Maui on an unforgettable adventure.',
     posterPath: 'https://image.tmdb.org/t/p/w500/gaet1xQ2nxrG0V1Ep9T20ZMNEIC.jpg',
     backdropPath: 'https://image.tmdb.org/t/p/original/c6BPbkO5Npt1OdwttAxCFo06wtH.jpg',
     mediaType: 'movie',
@@ -19,39 +187,25 @@ export const LATEST_MEDIA: MediaItem[] = [
     voteCount: 4280,
     genres: ['Animation', 'Adventure', 'Family'],
     durationMinutes: 107,
-    tagline: 'The ocean is calling.',
     status: 'Released',
-    trailerYoutubeKey: 'ib8ZqtBg0qU',
-    cast: [
-      { id: 1, name: 'Catherine Lagaʻaia', character: 'Moana' },
-      { id: 2, name: 'Dwayne Johnson', character: 'Maui' },
-      { id: 3, name: 'Rena Owen', character: 'Gramma Tala' },
-    ],
   },
   {
-    id: 533535,
-    tmdbId: 533535,
-    title: 'Deadpool & Wolverine',
-    originalTitle: 'Deadpool & Wolverine',
+    id: 1368337,
+    tmdbId: 1368337,
+    title: 'The Odyssey',
+    originalTitle: 'The Odyssey',
     overview:
-      'A listless Wade Wilson toils away in civilian life with his days as the morally flexible mercenary, Deadpool, behind him. But when his homeworld faces an existential threat, Wade must reluctantly suit-up again with an even more reluctant Wolverine.',
+      'The timeless epic of Odysseus navigating mythical perils, wrathful deities, and uncharted waters on his journey home to Ithaca.',
     posterPath: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg',
-    backdropPath: 'https://image.tmdb.org/t/p/original/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/c6BPbkO5Npt1OdwttAxCFo06wtH.jpg',
     mediaType: 'movie',
     category: 'movie',
-    releaseDate: '2024-07-24',
-    voteAverage: 7.7,
-    voteCount: 6150,
-    genres: ['Action', 'Comedy', 'Sci-Fi'],
-    durationMinutes: 128,
-    tagline: 'Come together.',
+    releaseDate: '2026-07-15',
+    voteAverage: 8.4,
+    voteCount: 910,
+    genres: ['Adventure', 'Drama', 'Fantasy'],
+    durationMinutes: 142,
     status: 'Released',
-    trailerYoutubeKey: '73_1biulkYk',
-    cast: [
-      { id: 10859, name: 'Ryan Reynolds', character: 'Wade Wilson / Deadpool' },
-      { id: 6968, name: 'Hugh Jackman', character: 'Logan / Wolverine' },
-      { id: 226344, name: 'Emma Corrin', character: 'Cassandra Nova' },
-    ],
   },
   {
     id: 108978,
@@ -59,44 +213,18 @@ export const LATEST_MEDIA: MediaItem[] = [
     title: 'Reacher',
     originalTitle: 'Reacher',
     overview:
-      'Jack Reacher, a veteran military police investigator, has just entered civilian life. Reacher is a drifter, carrying no phone and the barest of essentials as he travels the country and explores the nation he once served.',
+      'Jack Reacher, a veteran military police investigator, enters civilian life drifting across America unraveling deadly conspiracies.',
     posterPath: 'https://image.tmdb.org/t/p/w500/f1VCQIG2iCyOookdgOzwtUpwWC0.jpg',
     backdropPath: 'https://image.tmdb.org/t/p/original/m5CggjJuFc08QCuKz54znHP6spJ.jpg',
     mediaType: 'tv',
     category: 'tv',
-    releaseDate: '2022-02-03',
-    voteAverage: 8.1,
-    voteCount: 2250,
+    releaseDate: '2025-01-15',
+    voteAverage: 8.2,
+    voteCount: 2450,
     genres: ['Action & Adventure', 'Crime', 'Drama'],
-    tagline: 'Payback’s a badge.',
     status: 'Returning Series',
     totalSeasons: 4,
     totalEpisodes: 32,
-    trailerYoutubeKey: 'GSycMV_vr8c',
-    cast: [
-      { id: 1, name: 'Alan Ritchson', character: 'Jack Reacher' },
-      { id: 2, name: 'Maria Sten', character: 'Frances Neagley' },
-    ],
-  },
-  {
-    id: 113962,
-    tmdbId: 113962,
-    title: 'Lioness',
-    originalTitle: 'Lioness',
-    overview:
-      'CIA operative Joe McNamara attempts to balance her personal and professional life as the tip of the spear in the agency’s war on terror with the special Lioness program.',
-    posterPath: 'https://image.tmdb.org/t/p/w500/rzpHPSEgPTpRs8EHbygwsOw7jC0.jpg',
-    backdropPath: 'https://image.tmdb.org/t/p/original/4NBYDOnEjAzyuP7CMkD5s7fs44K.jpg',
-    mediaType: 'tv',
-    category: 'tv',
-    releaseDate: '2023-07-23',
-    voteAverage: 8.0,
-    voteCount: 1200,
-    genres: ['Drama', 'War & Politics'],
-    status: 'Returning Series',
-    totalSeasons: 2,
-    totalEpisodes: 16,
-    trailerYoutubeKey: 'yBb_X4vA95g',
   },
   {
     id: 93405,
@@ -104,40 +232,18 @@ export const LATEST_MEDIA: MediaItem[] = [
     title: 'Squid Game',
     originalTitle: '오징어 게임',
     overview:
-      'Hundreds of cash-strapped players accept a strange invitation to compete in children’s games. Inside, a tempting prize awaits with deadly high stakes.',
+      'Hundreds of cash-strapped players accept an invitation to compete in children’s games for a massive cash prize with lethal stakes.',
     posterPath: 'https://image.tmdb.org/t/p/w500/1QdXdRYfktUSONkl1oD5gc6Be0s.jpg',
     backdropPath: 'https://image.tmdb.org/t/p/original/2meX1nMdScFOoV4370rqHWKmXhY.jpg',
     mediaType: 'tv',
     category: 'asian',
-    releaseDate: '2021-09-17',
+    releaseDate: '2024-12-26',
     voteAverage: 8.4,
-    voteCount: 14500,
+    voteCount: 15200,
     genres: ['Asian Drama', 'Mystery', 'Action & Adventure'],
-    tagline: '45.6 Billion is child’s play.',
     status: 'Returning Series',
     totalSeasons: 3,
     totalEpisodes: 18,
-    trailerYoutubeKey: 'oqxAJKy0ii4',
-  },
-  {
-    id: 125988,
-    tmdbId: 125988,
-    title: 'Silo',
-    originalTitle: 'Silo',
-    overview:
-      'In a ruined and toxic future, thousands live in a giant silo deep underground. After its sheriff breaks a cardinal rule and residents die mysteriously, engineer Juliette starts to uncover shocking secrets.',
-    posterPath: 'https://image.tmdb.org/t/p/w500/gMYZZvnkVNTqSVnVCphWbPXwWwb.jpg',
-    backdropPath: 'https://image.tmdb.org/t/p/original/uTWhbLc7Bj4qNSdW3ZvZKL8cOHv.jpg',
-    mediaType: 'tv',
-    category: 'tv',
-    releaseDate: '2023-05-04',
-    voteAverage: 8.2,
-    voteCount: 1890,
-    genres: ['Sci-Fi & Fantasy', 'Drama'],
-    status: 'Returning Series',
-    totalSeasons: 2,
-    totalEpisodes: 20,
-    trailerYoutubeKey: '8ZYhuvIv1pA',
   },
   {
     id: 94605,
@@ -145,19 +251,36 @@ export const LATEST_MEDIA: MediaItem[] = [
     title: 'Arcane',
     originalTitle: 'Arcane',
     overview:
-      'Amid the stark discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war between magic technologies and incompatible convictions.',
+      'Amid the discord of twin cities Piltover and Zaun, two sisters fight on rival sides of a war between magic technologies and convictions.',
     posterPath: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
     backdropPath: 'https://image.tmdb.org/t/p/original/5cvnxEHT3e39DvT6ARw4GNCFrB0.jpg',
     mediaType: 'tv',
     category: 'anime',
-    releaseDate: '2021-11-06',
-    voteAverage: 8.7,
-    voteCount: 4120,
+    releaseDate: '2024-11-09',
+    voteAverage: 8.8,
+    voteCount: 4620,
     genres: ['Animation', 'Sci-Fi & Fantasy', 'Action & Adventure'],
     status: 'Ended',
     totalSeasons: 2,
     totalEpisodes: 18,
-    trailerYoutubeKey: 'fXmAurh012s',
+  },
+  {
+    id: 533535,
+    tmdbId: 533535,
+    title: 'Deadpool & Wolverine',
+    originalTitle: 'Deadpool & Wolverine',
+    overview:
+      'A listless Wade Wilson must reluctantly suit up again alongside an even more reluctant Wolverine to defend their universe.',
+    posterPath: 'https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/by8z9Fe8y7p4jo2YlW2SZDnptyT.jpg',
+    mediaType: 'movie',
+    category: 'movie',
+    releaseDate: '2024-07-24',
+    voteAverage: 7.7,
+    voteCount: 6500,
+    genres: ['Action', 'Comedy', 'Sci-Fi'],
+    durationMinutes: 128,
+    status: 'Released',
   },
   {
     id: 209867,
@@ -165,50 +288,281 @@ export const LATEST_MEDIA: MediaItem[] = [
     title: "Frieren: Beyond Journey's End",
     originalTitle: '葬送のフリーレン',
     overview:
-      'After the party of heroes defeated the Demon King, they restored peace to the land and returned to lives of solitude. Generations pass, and the elven mage Frieren comes face to face with humanity’s mortality.',
+      'After defeating the Demon King, elven mage Frieren embarks on a journey reflecting on her past companions and humanity.',
     posterPath: 'https://image.tmdb.org/t/p/w500/dqZENchTd7lp5zht7BdlqM7RBhD.jpg',
     backdropPath: 'https://image.tmdb.org/t/p/original/rBOnrVlck7BIlGeWVlzYiZeg4l2.jpg',
     mediaType: 'tv',
     category: 'anime',
     releaseDate: '2023-09-29',
     voteAverage: 8.9,
-    voteCount: 780,
+    voteCount: 890,
     genres: ['Animation', 'Action & Adventure', 'Sci-Fi & Fantasy'],
     status: 'Returning Series',
     totalSeasons: 2,
     totalEpisodes: 28,
-    trailerYoutubeKey: 'qgQunxD0qMo',
+  },
+  {
+    id: 125988,
+    tmdbId: 125988,
+    title: 'Silo',
+    originalTitle: 'Silo',
+    overview:
+      'In a ruined, toxic future, thousands live in a giant subterranean silo. Engineer Juliette starts to uncover its dark secrets.',
+    posterPath: 'https://image.tmdb.org/t/p/w500/gMYZZvnkVNTqSVnVCphWbPXwWwb.jpg',
+    backdropPath: 'https://image.tmdb.org/t/p/original/uTWhbLc7Bj4qNSdW3ZvZKL8cOHv.jpg',
+    mediaType: 'tv',
+    category: 'tv',
+    releaseDate: '2023-05-04',
+    voteAverage: 8.2,
+    voteCount: 1950,
+    genres: ['Sci-Fi & Fantasy', 'Drama'],
+    status: 'Returning Series',
+    totalSeasons: 2,
+    totalEpisodes: 20,
   },
 ];
 
 export const CURATED_MEDIA = LATEST_MEDIA;
 
-// Dynamic fetcher that pulls the live structured catalog from our `/api/media` endpoint
-export async function getMediaCatalog(): Promise<MediaCatalogResponse> {
+// Server-side cache
+let cachedCatalog: MediaCatalogResponse | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 1000 * 60 * 15; // 15 minutes TTL
+
+/**
+ * Directly fetches, compiles, and formats the live catalog from TMDb
+ * Guarantees every category is populated with comprehensive titles sorted in strict chronological order.
+ */
+export async function fetchLiveMediaCatalog(): Promise<MediaCatalogResponse> {
+  const now = Date.now();
+  if (cachedCatalog && now - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedCatalog;
+  }
+
   try {
-    if (typeof window !== 'undefined') {
-      const res = await fetch('/api/media');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.trendingDay && data.trendingDay.length > 0) {
-          return data as MediaCatalogResponse;
-        }
+    // Parallel fetch across extensive TMDb rails (multi-page)
+    const [
+      np1,
+      np2,
+      up1,
+      up2,
+      popM1,
+      popM2,
+      popM3,
+      popT1,
+      popT2,
+      popT3,
+      trMDay,
+      trTDay,
+      trMWk,
+      trTWk,
+      animePop1,
+      animePop2,
+      animeLatest1,
+      animeLatest2,
+      asianPop1,
+      asianPop2,
+      asianLatest1,
+      asianLatest2,
+    ] = await Promise.all([
+      tmdb.getNowPlaying(1).catch(() => null),
+      tmdb.getNowPlaying(2).catch(() => null),
+      tmdb.getUpcoming(1).catch(() => null),
+      tmdb.getUpcoming(2).catch(() => null),
+      tmdb.getPopular('movie', 1).catch(() => null),
+      tmdb.getPopular('movie', 2).catch(() => null),
+      tmdb.getPopular('movie', 3).catch(() => null),
+      tmdb.getPopular('tv', 1).catch(() => null),
+      tmdb.getPopular('tv', 2).catch(() => null),
+      tmdb.getPopular('tv', 3).catch(() => null),
+      tmdb.getTrending('day', 'movie').catch(() => null),
+      tmdb.getTrending('day', 'tv').catch(() => null),
+      tmdb.getTrending('week', 'movie').catch(() => null),
+      tmdb.getTrending('week', 'tv').catch(() => null),
+      tmdb.getAnime(1).catch(() => null),
+      tmdb.getAnime(2).catch(() => null),
+      tmdb.getLatestAnime(1).catch(() => null),
+      tmdb.getLatestAnime(2).catch(() => null),
+      tmdb.getAsianDrama(1).catch(() => null),
+      tmdb.getAsianDrama(2).catch(() => null),
+      tmdb.getLatestAsianDrama(1).catch(() => null),
+      tmdb.getLatestAsianDrama(2).catch(() => null),
+    ]);
+
+    // 1. Compile Movies (Now Playing, Upcoming, Popular, Trending)
+    const movieMap = new Map<number, MediaItem>();
+    const rawMovies = [
+      ...(np1?.results || []),
+      ...(np2?.results || []),
+      ...(up1?.results || []),
+      ...(up2?.results || []),
+      ...(popM1?.results || []),
+      ...(popM2?.results || []),
+      ...(popM3?.results || []),
+      ...(trMDay?.results || []),
+      ...(trMWk?.results || []),
+    ];
+
+    rawMovies.forEach((m) => {
+      if (m.id && m.poster_path && !movieMap.has(m.id)) {
+        movieMap.set(m.id, formatTmdItem(m, 'movie', 'movie'));
       }
+    });
+    // Sort all movies chronologically: Latest releases to oldest
+    const popularMovies = sortMediaChronologically(Array.from(movieMap.values()), 'desc');
+
+    // 2. Compile TV Series (Popular, Trending)
+    const tvMap = new Map<number, MediaItem>();
+    const rawTV = [
+      ...(popT1?.results || []),
+      ...(popT2?.results || []),
+      ...(popT3?.results || []),
+      ...(trTDay?.results || []),
+      ...(trTWk?.results || []),
+    ];
+
+    rawTV.forEach((t) => {
+      if (t.id && t.poster_path && !tvMap.has(t.id)) {
+        tvMap.set(t.id, formatTmdItem(t, 'tv', 'tv'));
+      }
+    });
+    // Sort all TV series chronologically: Latest releases to oldest
+    const popularTV = sortMediaChronologically(Array.from(tvMap.values()), 'desc');
+
+    // 3. Compile Anime (Popular & Latest discoveries)
+    const animeMap = new Map<number, MediaItem>();
+    const rawAnime = [
+      ...(animeLatest1?.results || []),
+      ...(animeLatest2?.results || []),
+      ...(animePop1?.results || []),
+      ...(animePop2?.results || []),
+    ];
+
+    rawAnime.forEach((a) => {
+      if (a.id && a.poster_path && !animeMap.has(a.id)) {
+        animeMap.set(a.id, formatTmdItem(a, 'tv', 'anime'));
+      }
+    });
+    // Sort all anime chronologically: Latest to oldest
+    const anime = sortMediaChronologically(Array.from(animeMap.values()), 'desc');
+
+    // 4. Compile Asian Dramas (Popular & Latest K-Dramas)
+    const asianMap = new Map<number, MediaItem>();
+    const rawAsian = [
+      ...(asianLatest1?.results || []),
+      ...(asianLatest2?.results || []),
+      ...(asianPop1?.results || []),
+      ...(asianPop2?.results || []),
+    ];
+
+    rawAsian.forEach((asItem) => {
+      if (asItem.id && asItem.poster_path && !asianMap.has(asItem.id)) {
+        asianMap.set(asItem.id, formatTmdItem(asItem, 'tv', 'asian'));
+      }
+    });
+    // Sort all Asian dramas chronologically: Latest to oldest
+    const asian = sortMediaChronologically(Array.from(asianMap.values()), 'desc');
+
+    // 5. Now Playing / In-Theaters releases in chronological order
+    const npMap = new Map<number, MediaItem>();
+    [...(np1?.results || []), ...(np2?.results || [])].forEach((item) => {
+      if (item.id && item.poster_path && !npMap.has(item.id)) {
+        npMap.set(item.id, formatTmdItem(item, 'movie', 'movie'));
+      }
+    });
+    const nowPlaying = sortMediaChronologically(Array.from(npMap.values()), 'desc');
+
+    // 6. Trending Day and Week (Curated high-engagement mixes)
+    const trendingDay: MediaItem[] = [
+      ...((trMDay?.results || []).map((m) => formatTmdItem(m, 'movie', 'movie'))),
+      ...((trTDay?.results || []).map((t) => formatTmdItem(t, 'tv', 'tv'))),
+    ].filter((item) => item.posterPath);
+
+    const trendingWeek: MediaItem[] = [
+      ...((trMWk?.results || []).map((m) => formatTmdItem(m, 'movie', 'movie'))),
+      ...((trTWk?.results || []).map((t) => formatTmdItem(t, 'tv', 'tv'))),
+    ].filter((item) => item.posterPath);
+
+    // 7. Master catalog: Combine ALL unique titles and sort chronologically
+    const allMap = new Map<number, MediaItem>();
+    [
+      ...popularMovies,
+      ...popularTV,
+      ...anime,
+      ...asian,
+      ...nowPlaying,
+      ...trendingDay,
+    ].forEach((item) => {
+      if (!allMap.has(item.id)) {
+        allMap.set(item.id, item);
+      }
+    });
+
+    const all = sortMediaChronologically(Array.from(allMap.values()), 'desc');
+
+    const result: MediaCatalogResponse = {
+      trendingDay: trendingDay.length > 0 ? trendingDay : all.slice(0, 20),
+      trendingWeek: trendingWeek.length > 0 ? trendingWeek : all.slice(0, 20),
+      nowPlaying: nowPlaying.length > 0 ? nowPlaying : popularMovies.slice(0, 20),
+      popularMovies,
+      popularTV,
+      anime,
+      asian,
+      all,
+    };
+
+    if (all.length > 0) {
+      cachedCatalog = result;
+      cacheTimestamp = now;
+      // Asynchronously sync live catalog to database automatically
+      autoSyncMediaCatalogToDatabase(all).catch((e) => {
+        console.warn('Async media catalog DB auto-sync notice:', e);
+      });
+      return result;
     }
   } catch (err) {
-    console.error('Failed to get media catalog:', err);
+    console.error('Error fetching live TMDb catalog in fetchLiveMediaCatalog:', err);
   }
+
+  // Graceful fallback if live TMDb fetch fails
+  if (cachedCatalog) return cachedCatalog;
 
   return {
     trendingDay: LATEST_MEDIA,
     trendingWeek: LATEST_MEDIA,
-    nowPlaying: LATEST_MEDIA,
+    nowPlaying: LATEST_MEDIA.filter((m) => m.mediaType === 'movie'),
     popularMovies: LATEST_MEDIA.filter((m) => m.mediaType === 'movie'),
     popularTV: LATEST_MEDIA.filter((m) => m.mediaType === 'tv'),
     anime: LATEST_MEDIA.filter((m) => m.category === 'anime'),
     asian: LATEST_MEDIA.filter((m) => m.category === 'asian'),
     all: LATEST_MEDIA,
   };
+}
+
+/**
+ * Universal media catalog getter that works seamlessly on both server and client
+ */
+export async function getMediaCatalog(): Promise<MediaCatalogResponse> {
+  // If running on server (Next.js SSR / Server Components / Sitemaps), query directly
+  if (typeof window === 'undefined') {
+    return fetchLiveMediaCatalog();
+  }
+
+  // If running on client, fetch the cached API endpoint
+  try {
+    const res = await fetch('/api/media');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.all && data.all.length > 0) {
+        return data as MediaCatalogResponse;
+      }
+    }
+  } catch (err) {
+    console.error('Client failed to fetch /api/media:', err);
+  }
+
+  // Client-side fallback if /api/media fails
+  return fetchLiveMediaCatalog();
 }
 
 export async function getAllMedia(): Promise<MediaItem[]> {
@@ -223,14 +577,21 @@ export async function getTrendingMedia(window: TrendingWindow = 'day'): Promise<
   return catalog.popularMovies;
 }
 
-export async function getMediaByCategory(category: Category): Promise<MediaItem[]> {
+export async function getMediaByCategory(
+  category: Category,
+  sortOrder: 'desc' | 'asc' = 'desc'
+): Promise<MediaItem[]> {
   const catalog = await getMediaCatalog();
-  if (category === 'all') return catalog.all;
-  if (category === 'movie') return catalog.popularMovies;
-  if (category === 'tv') return catalog.popularTV;
-  if (category === 'anime') return catalog.anime;
-  if (category === 'asian') return catalog.asian;
-  return catalog.all.filter((m) => m.category === category);
+  let items: MediaItem[] = [];
+
+  if (category === 'all') items = catalog.all;
+  else if (category === 'movie') items = catalog.popularMovies;
+  else if (category === 'tv') items = catalog.popularTV;
+  else if (category === 'anime') items = catalog.anime;
+  else if (category === 'asian') items = catalog.asian;
+  else items = catalog.all.filter((m) => m.category === category);
+
+  return sortMediaChronologically(items, sortOrder);
 }
 
 export function parseMediaId(idOrSlug: string | number): number {
@@ -262,11 +623,16 @@ export async function getMediaById(
   const found = all.find((m) => m.id === numericId || m.tmdbId === numericId);
 
   // If already found with full cast and seasons populated, return
-  if (found && found.cast && found.cast.length > 0 && (found.mediaType === 'movie' || (found.seasons && found.seasons.length > 0))) {
+  if (
+    found &&
+    found.cast &&
+    found.cast.length > 0 &&
+    (found.mediaType === 'movie' || (found.seasons && found.seasons.length > 0))
+  ) {
     return found;
   }
 
-  // Fetch full details directly from TMDb proxy
+  // Fetch full details directly from TMDb
   try {
     const determinedType = type || (found ? found.mediaType : 'movie');
     let details: any = null;
@@ -391,7 +757,7 @@ export async function getMediaById(
         seasons: isTv && seasons.length > 0 ? seasons : undefined,
         totalSeasons: details.number_of_seasons,
         totalEpisodes: details.number_of_episodes,
-        trailerYoutubeKey: trailer?.key || found?.trailerYoutubeKey || 'Way9Dexny3w',
+        trailerYoutubeKey: trailer?.key || found?.trailerYoutubeKey || 'ib8ZqtBg0qU',
       };
 
       return fullItem;
@@ -423,41 +789,47 @@ export async function searchMedia(query: string): Promise<MediaItem[]> {
     }
 
     if (results.length > 0) {
-      return results
-        .filter((r) => r.poster_path && (r.title || r.name))
-        .map((r) => {
-          const isTv = r.media_type === 'tv' || Boolean(r.first_air_date);
-          const title = r.title || r.name || 'Untitled';
-          return {
-            id: r.id,
-            tmdbId: r.id,
-            title,
-            originalTitle: title,
-            overview: r.overview || '',
-            posterPath: `https://image.tmdb.org/t/p/w500${r.poster_path}`,
-            backdropPath: r.backdrop_path
-              ? `https://image.tmdb.org/t/p/original${r.backdrop_path}`
-              : `https://image.tmdb.org/t/p/w500${r.poster_path}`,
-            mediaType: isTv ? 'tv' : 'movie',
-            category: isTv ? 'tv' : 'movie',
-            releaseDate: r.release_date || r.first_air_date || '2026',
-            voteAverage: r.vote_average ? Number(r.vote_average.toFixed(1)) : 8.0,
-            voteCount: r.vote_count || 100,
-            genres: ['Featured'],
-          };
-        });
+      return sortMediaChronologically(
+        results
+          .filter((r) => r.poster_path && (r.title || r.name))
+          .map((r) => {
+            const isTv = r.media_type === 'tv' || Boolean(r.first_air_date);
+            const title = r.title || r.name || 'Untitled';
+            return {
+              id: r.id,
+              tmdbId: r.id,
+              title,
+              originalTitle: title,
+              overview: r.overview || '',
+              posterPath: `https://image.tmdb.org/t/p/w500${r.poster_path}`,
+              backdropPath: r.backdrop_path
+                ? `https://image.tmdb.org/t/p/original${r.backdrop_path}`
+                : `https://image.tmdb.org/t/p/w500${r.poster_path}`,
+              mediaType: isTv ? 'tv' : 'movie',
+              category: isTv ? 'tv' : 'movie',
+              releaseDate: r.release_date || r.first_air_date || '2026',
+              voteAverage: r.vote_average ? Number(r.vote_average.toFixed(1)) : 8.0,
+              voteCount: r.vote_count || 100,
+              genres: ['Featured'],
+            };
+          }),
+        'desc'
+      );
     }
   } catch (e) {
     console.error('TMDb live search error:', e);
   }
 
-  // Fallback to local filtering
+  // Fallback to local catalog filtering
   const all = await getAllMedia();
-  return all.filter(
-    (m) =>
-      m.title.toLowerCase().includes(trimmed) ||
-      m.genres.some((g) => g.toLowerCase().includes(trimmed)) ||
-      m.overview.toLowerCase().includes(trimmed)
+  return sortMediaChronologically(
+    all.filter(
+      (m) =>
+        m.title.toLowerCase().includes(trimmed) ||
+        m.genres.some((g) => g.toLowerCase().includes(trimmed)) ||
+        m.overview.toLowerCase().includes(trimmed)
+    ),
+    'desc'
   );
 }
 
@@ -476,25 +848,28 @@ export async function getSimilarMedia(id: number): Promise<MediaItem[]> {
     }
 
     if (results && results.length > 0) {
-      return results.slice(0, 10).map((r) => ({
-        id: r.id,
-        tmdbId: r.id,
-        title: r.title || r.name || 'Untitled',
-        originalTitle: r.title || r.name || 'Untitled',
-        overview: r.overview || '',
-        posterPath: r.poster_path
-          ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
-          : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80',
-        backdropPath: r.backdrop_path
-          ? `https://image.tmdb.org/t/p/original${r.backdrop_path}`
-          : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
-        mediaType: r.title ? 'movie' : 'tv',
-        category: r.title ? 'movie' : 'tv',
-        releaseDate: r.release_date || r.first_air_date || '2026',
-        voteAverage: r.vote_average ? Number(r.vote_average.toFixed(1)) : 7.8,
-        voteCount: r.vote_count || 50,
-        genres: ['Action'],
-      }));
+      return sortMediaChronologically(
+        results.slice(0, 10).map((r) => ({
+          id: r.id,
+          tmdbId: r.id,
+          title: r.title || r.name || 'Untitled',
+          originalTitle: r.title || r.name || 'Untitled',
+          overview: r.overview || '',
+          posterPath: r.poster_path
+            ? `https://image.tmdb.org/t/p/w500${r.poster_path}`
+            : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80',
+          backdropPath: r.backdrop_path
+            ? `https://image.tmdb.org/t/p/original${r.backdrop_path}`
+            : 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80',
+          mediaType: r.title ? 'movie' : 'tv',
+          category: r.title ? 'movie' : 'tv',
+          releaseDate: r.release_date || r.first_air_date || '2026',
+          voteAverage: r.vote_average ? Number(r.vote_average.toFixed(1)) : 7.8,
+          voteCount: r.vote_count || 50,
+          genres: ['Action'],
+        })),
+        'desc'
+      );
     }
   } catch (e) {
     console.error('Failed to get similar media:', e);

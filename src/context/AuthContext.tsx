@@ -75,8 +75,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(supaUser);
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(supaUser));
 
-          // Sync user's private data from Supabase to local cache
+          // Automatically and asynchronously sync user's data to/from Supabase database
           try {
+            const rawWatchlist = localStorage.getItem('cinemahd_watchlist');
+            const rawProgress = localStorage.getItem('cinemahd_continue_watching');
+            const rawWatched = localStorage.getItem('cinemahd_watched');
+            const localWatchlist = rawWatchlist ? JSON.parse(rawWatchlist) : [];
+            const localProgress = rawProgress ? JSON.parse(rawProgress) : [];
+            const localWatched = rawWatched ? JSON.parse(rawWatched) : [];
+
+            // 1. Automatically push uncommitted local bookmarks & watch progress to database
+            if (localWatchlist.length > 0 || localProgress.length > 0) {
+              await migrateLocalToSupabase(session.user.id, localWatchlist, localProgress, localWatched);
+            }
+
+            // 2. Asynchronously pull remote database records
             const [remoteWatchlist, remoteProgress, remoteWatched] = await Promise.all([
               fetchSupabaseWatchlist(session.user.id),
               fetchSupabaseWatchProgress(session.user.id),
@@ -94,7 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             }
             window.dispatchEvent(new Event('cinemahd_storage_change'));
           } catch (e) {
-            console.error('Error syncing Supabase user library:', e);
+            console.warn('Notice during automatic Supabase user library sync:', e);
           }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);

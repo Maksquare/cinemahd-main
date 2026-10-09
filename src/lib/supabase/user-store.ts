@@ -298,3 +298,39 @@ export async function migrateLocalToSupabase(
     console.error('Error migrating local guest data to Supabase:', err);
   }
 }
+
+/**
+ * Automatically and asynchronously upsert catalog items into the media_catalog table.
+ * Runs non-blocking in background whenever the catalog is compiled or refreshed.
+ */
+export async function autoSyncMediaCatalogToDatabase(items: MediaItem[]): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase || !items || items.length === 0) return;
+
+  try {
+    const rows = items.slice(0, 150).map((m) => ({
+      id: m.id,
+      title: m.title,
+      original_title: m.originalTitle || m.title,
+      overview: m.overview || '',
+      poster_path: m.posterPath || '',
+      backdrop_path: m.backdropPath || '',
+      media_type: m.mediaType,
+      category: m.category,
+      release_date: m.releaseDate || '',
+      vote_average: m.voteAverage || 0,
+      vote_count: m.voteCount || 0,
+      genres: m.genres || [],
+      status: m.status || 'Released',
+      duration_minutes: m.durationMinutes || null,
+      trailer_youtube_key: m.trailerYoutubeKey || null,
+      updated_at: new Date().toISOString(),
+    }));
+
+    await supabase.from('media_catalog').upsert(rows, { onConflict: 'id', ignoreDuplicates: false });
+  } catch (err) {
+    // Non-blocking background catch: will not break catalog delivery if schema isn't created yet
+    console.warn('Background database media_catalog auto-sync notice:', err);
+  }
+}
+

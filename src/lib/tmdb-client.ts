@@ -155,24 +155,63 @@ export const tmdb = {
     return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
   },
 
-  // 4. Anime Discovery
+  // 3b. Upcoming Theatrical Movies
+  async getUpcoming(page = 1) {
+    const url = getAuthUrl('/movie/upcoming', { page });
+    return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
+  },
+
+  // 4. Anime Discovery (Popular)
   async getAnime(page = 1) {
     const url = getAuthUrl('/discover/tv', {
       with_genres: '16',
       with_original_language: 'ja',
       sort_by: 'popularity.desc',
+      'vote_count.gte': 5,
       page,
     });
     return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
   },
 
-  // 5. Asian Drama Discovery
+  // 4b. Latest Anime (Chronological Release)
+  async getLatestAnime(page = 1) {
+    const url = getAuthUrl('/discover/tv', {
+      with_genres: '16',
+      with_original_language: 'ja',
+      sort_by: 'first_air_date.desc',
+      'vote_count.gte': 3,
+      page,
+    });
+    return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
+  },
+
+  // 5. Asian Drama Discovery (Popular K-Dramas & Asian Series)
   async getAsianDrama(page = 1) {
     const url = getAuthUrl('/discover/tv', {
       with_original_language: 'ko',
+      with_genres: '18',
       sort_by: 'popularity.desc',
+      'vote_count.gte': 5,
       page,
     });
+    return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
+  },
+
+  // 5b. Latest Asian Drama (Chronological Release)
+  async getLatestAsianDrama(page = 1) {
+    const url = getAuthUrl('/discover/tv', {
+      with_original_language: 'ko',
+      with_genres: '18',
+      sort_by: 'first_air_date.desc',
+      'vote_count.gte': 3,
+      page,
+    });
+    return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
+  },
+
+  // 5c. Top Rated
+  async getTopRated(type: 'movie' | 'tv' = 'movie', page = 1) {
+    const url = getAuthUrl(`/${type}/top_rated`, { page });
     return fetchWithRetry<{ results: TMDbMovieItem[] }>(url);
   },
 
